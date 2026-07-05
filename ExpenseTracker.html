@@ -1,0 +1,725 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Smart Expense Tracker with Analytics</title>
+    <style>
+      /* Global Reset & Typography */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      }
+
+      /* Base Application Container */
+      .container {
+        min-height: 100vh;
+        padding: 20px;
+        background-color: #f4f7f6;
+        color: #333;
+        transition: background-color 0.3s, color 0.3s;
+      }
+
+      /* Navbar Styling */
+      nav {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-bottom: 15px;
+        border-bottom: 2px solid #e0e0e0;
+        margin-bottom: 25px;
+      }
+
+      nav h2 {
+        font-size: 24px;
+        font-weight: 600;
+        color: #0d6efd;
+      }
+
+      #dark {
+        background-color: #212529;
+        color: white;
+        border: none;
+        padding: 8px 16px;
+        border-radius: 20px;
+        cursor: pointer;
+        font-weight: 500;
+        transition: all 0.2s ease;
+      }
+
+      #dark:hover {
+        opacity: 0.9;
+      }
+
+      h1.section-title {
+        font-size: 18px;
+        font-weight: 600;
+        margin-bottom: 15px;
+        color: #555;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+      }
+
+      /* 1. Summary Cards Section (Responsive Grid) */
+      .sum {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+      }
+
+      .card {
+        background: white;
+        padding: 20px;
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .card h4:first-child {
+        font-size: 14px;
+        color: #64748b;
+        font-weight: 500;
+      }
+
+      .card h4:last-child {
+        font-size: 24px;
+        font-weight: 700;
+        color: #1e293b;
+      }
+
+      #totalbal { color: #0d6efd; }
+      #totalinc { color: #198754; }
+      #totalexp { color: #dc3545; }
+
+      /* 2. Main Dashboard Layout Split */
+      .main-content {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 25px;
+      }
+
+      @media (min-width: 992px) {
+        .main-content {
+          grid-template-columns: 350px 1fr;
+        }
+      }
+
+      /* Form Panel Styling */
+      .new {
+        background: white;
+        padding: 25px;
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        height: max-content;
+      }
+
+      .new h5 {
+        font-size: 13px;
+        color: #475569;
+        font-weight: 600;
+        margin-bottom: -4px;
+      }
+
+      .new input, .new select {
+        width: 100%;
+        height: 38px;
+        padding: 8px 12px;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        font-size: 14px;
+        outline: none;
+        transition: border-color 0.2s;
+      }
+
+      .new input:focus, .new select:focus {
+        border-color: #0d6efd;
+      }
+
+      .t {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        padding-bottom: 10px;
+        border-bottom: 1px solid #f1f5f9;
+      }
+
+      .fl {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .switch {
+        position: relative;
+        display: inline-block;
+        width: 44px;
+        height: 22px;
+      }
+
+      .switch input {
+        opacity: 0;
+        width: 0;
+        height: 0;
+      }
+
+      .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background-color: #dc3545;
+        transition: 0.4s;
+      }
+
+      .slider:before {
+        position: absolute;
+        content: "";
+        height: 16px;
+        width: 16px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        transition: 0.4s;
+      }
+
+      input:checked + .slider {
+        background-color: #198754;
+      }
+
+      input:checked + .slider:before {
+        transform: translateX(22px);
+      }
+
+      .slider.round {
+        border-radius: 34px;
+      }
+
+      .slider.round:before {
+        border-radius: 50%;
+      }
+
+      .btn-submit {
+        background-color: #0d6efd;
+        color: white;
+        border: none;
+        height: 40px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        margin-top: 10px;
+        transition: background 0.2s;
+      }
+
+      .btn-submit:hover {
+        background-color: #0b5ed7;
+      }
+
+      /* 3. Right Section Wrapper */
+      .right-section {
+        display: flex;
+        flex-direction: column;
+        gap: 25px;
+      }
+
+      /* Analytics Box Layout */
+      .analytics-box {
+        background: white;
+        padding: 25px;
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+      }
+
+      .analytics-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-top: 15px;
+      }
+
+      .analytics-item {
+        margin-bottom: 12px;
+      }
+
+      .analytics-meta {
+        display: flex;
+        justify-content: space-between;
+        font-size: 13px;
+        font-weight: 500;
+        margin-bottom: 4px;
+        color: #475569;
+      }
+
+      .progress-bar {
+        background-color: #f1f5f9;
+        height: 8px;
+        border-radius: 4px;
+        overflow: hidden;
+      }
+
+      .progress-fill {
+        background-color: #dc3545;
+        height: 100%;
+        width: 0%;
+        border-radius: 4px;
+        transition: width 0.4s ease;
+      }
+
+      /* Transaction List Panel */
+      .li {
+        background: white;
+        padding: 25px;
+        border-radius: 12px;
+        border: 1px solid #e2e8f0;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+      }
+
+      .search-bar-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+        margin-bottom: 20px;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .search-bar-container input {
+        flex: 1;
+        min-width: 200px;
+        height: 38px;
+        padding: 8px 12px;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        outline: none;
+      }
+
+      .filters {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+
+      .filters select, .filters input {
+        height: 38px;
+        padding: 0 10px;
+        border: 1px solid #cbd5e1;
+        border-radius: 8px;
+        background: white;
+      }
+
+      .table-wrapper {
+        width: 100%;
+        overflow-x: auto;
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        text-align: left;
+        font-size: 14px;
+      }
+
+      th {
+        background-color: #f8fafc;
+        color: #64748b;
+        padding: 12px;
+        font-weight: 600;
+        border-bottom: 2px solid #e2e8f0;
+      }
+
+      td {
+        padding: 12px;
+        border-bottom: 1px solid #e2e8f0;
+        color: #334155;
+      }
+
+      tr:hover {
+        background-color: #f8fafc;
+      }
+
+      #note {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #333;
+        color: #fff;
+        padding: 12px 24px;
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        z-index: 1000;
+        font-size: 14px;
+        font-weight: 500;
+        opacity: 0;
+        transform: translateY(-20px);
+        transition: all 0.3s ease;
+        pointer-events: none;
+      }
+      
+      #note.show {
+        opacity: 1;
+        transform: translateY(0);
+      }
+
+      /* Dark Mode Overrides */
+      .dark-theme {
+        background-color: #0f172a !important;
+        color: #f8fafc !important;
+      }
+
+      .dark-theme nav { border-bottom-color: #334155; }
+      .dark-theme h1.section-title { color: #94a3b8; }
+      .dark-theme .card, .dark-theme .new, .dark-theme .li, .dark-theme .analytics-box {
+        background-color: #1e293b;
+        border-color: #334155;
+      }
+      .dark-theme .card h4:last-child { color: #f8fafc; }
+      .dark-theme th { background-color: #1e293b; color: #94a3b8; border-bottom-color: #475569;}
+      .dark-theme td { color: #cbd5e1; border-bottom-color: #334155; }
+      .dark-theme tr:hover { background-color: #334155; }
+      .dark-theme input, .dark-theme select {
+        background-color: #334155;
+        border-color: #475569;
+        color: white;
+      }
+      .dark-theme .analytics-meta { color: #cbd5e1; }
+      .dark-theme .progress-bar { background-color: #334155; }
+    </style>
+  </head>
+  <body>
+    <div id="note"></div>
+
+    <div class="container" id="container">
+      
+      <nav>
+        <h2>Expense Tracker</h2>
+        <button id="dark" onclick="darkmode()">
+          <span id="dd">Dark Mode</span>
+        </button>
+      </nav>
+
+      <h1 class="section-title">Summary Section</h1>
+      <div class="sum">
+        <div class="card">
+          <h4>Total Balance</h4>
+          <h4 id="totalbal">₹0</h4>
+        </div>
+        <div class="card">
+          <h4>Total Income</h4>
+          <h4 id="totalinc">₹0</h4>
+        </div>
+        <div class="card">
+          <h4>Total Expenses</h4>
+          <h4 id="totalexp">₹0</h4>
+        </div>
+        <div class="card">
+          <h4>Expense Review</h4>
+          <h4 id="review">Normal</h4>
+        </div>
+      </div>
+
+      <div class="main-content">
+        
+        <!-- Form Left Block -->
+        <div class="new">
+          <div class="t">
+            <h4>Transaction Type</h4>
+            <div class="fl">
+              <h5>Expense</h5>
+              <label class="switch">
+                <input type="checkbox" id="typeToggle" />
+                <span class="slider round"></span>
+              </label>
+              <h5>Income</h5>
+            </div>
+          </div>
+          
+          <h5>Description</h5>
+          <input type="text" id="des" placeholder="e.g., Petrol Raider 125" />
+          
+          <h5>Amount</h5>
+          <input type="number" id="a" placeholder="type amount here" />
+          
+          <h5>Category</h5>
+          <select id="et">
+            <option value="">Select a Category</option>
+            <option value="Food">Food</option>
+            <option value="Travel">Travel</option>
+            <option value="Fuel">Fuel</option>
+            <option value="Cloths">Cloths</option>
+            <option value="Veg">Veg</option>
+            <option value="Recharge">Recharge</option>
+            <option value="Other">Other</option>
+          </select>
+          
+          <h5>Date</h5>
+          <input type="date" id="date" />
+          
+          <h5>Payment Method</h5>
+          <select id="pm">
+            <option value="UPI">UPI</option>
+            <option value="Cash">Cash</option>
+            <option value="Card">Card</option>
+          </select>
+
+          <button class="btn-submit" onclick="addTransaction()">ADD TRANSACTION</button>
+        </div>
+
+        <!-- Right Panels Stack -->
+        <div class="right-section">
+          
+          <!-- Category Analytics Breakdown -->
+          <div class="analytics-box">
+            <h1 class="section-title" style="margin-bottom: 5px;">Category Analytics Breakdown</h1>
+            <p style="font-size:12px; color:#64748b; margin-bottom:15px;">Showing expenses filtered by selected criteria</p>
+            <div id="analyticsContainer" class="analytics-grid">
+              <!-- Bars will render dynamically -->
+            </div>
+          </div>
+
+          <!-- Table Block -->
+          <div class="li">
+            <h1 class="section-title" style="margin-bottom: 20px;">Transaction List</h1>
+            
+            <div class="search-bar-container">
+              <input type="text" id="searchInp" oninput="renderUI()" placeholder="Search transactions..."> 
+              <div class="filters">
+                <input type="month" id="monthFilter" onchange="renderUI()">
+                <select id="catFilter" onchange="renderUI()">
+                  <option value="">All Categories</option>
+                  <option value="Food">Food</option>
+                  <option value="Travel">Travel</option>
+                  <option value="Fuel">Fuel</option>
+                  <option value="Cloths">Cloths</option>
+                  <option value="Veg">Veg</option>
+                  <option value="Recharge">Recharge</option>
+                  <option value="Other">Other</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="table-wrapper">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Title</th>
+                    <th>Date</th>
+                    <th>Category</th>
+                    <th>Mode</th>
+                    <th>Amount (+/-)</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody id="tableBody">
+                  <!-- Dynamic Injection -->
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+        </div>
+
+      </div>
+    </div>
+
+    <script>
+      let transactions = JSON.parse(localStorage.getItem("transactions")) || [];
+
+      window.onload = function() {
+        applyTheme();
+        renderUI();
+      };
+
+      if (localStorage.getItem("dark") === null) {
+        localStorage.setItem("dark", "false");
+      }
+      
+      function darkmode() {
+        let d = localStorage.getItem("dark");
+        if (d === "false") {
+          localStorage.setItem("dark", "true");
+        } else {
+          localStorage.setItem("dark", "false");
+        }
+        applyTheme();
+      }
+      
+      function applyTheme() {
+        let d = localStorage.getItem("dark");
+        if (d === "true") {
+          document.getElementById("container").classList.add("dark-theme");
+          document.getElementById("dd").innerHTML = "Light Mode";
+        } else {
+          document.getElementById("container").classList.remove("dark-theme");
+          document.getElementById("dd").innerHTML = "Dark Mode";
+        }
+      }
+
+      function addTransaction() {
+        const description = document.getElementById("des").value.trim();
+        const amount = parseFloat(document.getElementById("a").value);
+        const category = document.getElementById("et").value;
+        const date = document.getElementById("date").value;
+        const paymentMethod = document.getElementById("pm").value;
+        const isIncome = document.getElementById("typeToggle").checked; 
+
+        if (!description || isNaN(amount) || amount <= 0 || !category || !date) {
+          notify("Please fill out all fields with valid details!", "#dc3545");
+          return;
+        }
+
+        const newTransaction = {
+          id: Date.now(), 
+          title: description,
+          amount: amount,
+          type: isIncome ? "income" : "expense",
+          category: category,
+          date: date,
+          mode: paymentMethod
+        };
+
+        transactions.push(newTransaction);
+        localStorage.setItem("transactions", JSON.stringify(transactions));
+
+        document.getElementById("des").value = "";
+        document.getElementById("a").value = "";
+        document.getElementById("et").value = "";
+        document.getElementById("date").value = "";
+
+        notify("Transaction Added Successfully!", "#198754");
+        renderUI();
+      }
+
+      function notify(message, bgColor = "#333") {
+        let not = document.getElementById('note');
+        not.innerHTML = message;
+        not.style.backgroundColor = bgColor;
+        not.classList.add("show");
+        
+        setTimeout(() => {
+          not.classList.remove("show");
+        }, 2500);
+      }
+
+      function deleteTransaction(id) {
+        transactions = transactions.filter(item => item.id !== id);
+        localStorage.setItem("transactions", JSON.stringify(transactions));
+        notify("Transaction Deleted!", "#dc3545");
+        renderUI();
+      }
+
+      function renderUI() {
+        const tBody = document.getElementById("tableBody");
+        const searchVal = document.getElementById("searchInp").value.toLowerCase();
+        const monthVal = document.getElementById("monthFilter").value; 
+        const catVal = document.getElementById("catFilter").value;
+        const analyticsContainer = document.getElementById("analyticsContainer");
+
+        tBody.innerHTML = "";
+
+        let incomeSum = 0;
+        let expenseSum = 0;
+        
+        // Data bucket configuration for computing analytical parameters
+        let categoryTotals = {};
+        let totalFilteredExpense = 0;
+
+        transactions.forEach(item => {
+          // Global Metrics Computations
+          if (item.type === "income") incomeSum += item.amount;
+          else expenseSum += item.amount;
+
+          // Filter evaluation checks
+          if (searchVal && !item.title.toLowerCase().includes(searchVal)) return;
+          if (catVal && item.category !== catVal) return;
+          if (monthVal) {
+            const itemMonth = item.date.substring(0, 7); 
+            if (itemMonth !== monthVal) return;
+          }
+
+          // Compute operational fields if dynamic item is an expense type
+          if (item.type === "expense") {
+            categoryTotals[item.category] = (categoryTotals[item.category] || 0) + item.amount;
+            totalFilteredExpense += item.amount;
+          }
+
+          const row = document.createElement("tr");
+          const isInc = item.type === "income";
+          
+          row.innerHTML = `
+            <td>${item.title}</td>
+            <td>${item.date}</td>
+            <td>${item.category}</td>
+            <td>${item.mode}</td>
+            <td style="color: ${isInc ? '#198754' : '#dc3545'}; font-weight: 600;">
+              ${isInc ? '+' : '-'}₹${item.amount}
+            </td>
+            <td>
+              <button onclick="deleteTransaction(${item.id})" style="cursor:pointer; border:none; background:none; font-size:16px;">🗑️</button>
+            </td>
+          `;
+          tBody.appendChild(row);
+        });
+
+        // --- Render Analytics Section Block ---
+        analyticsContainer.innerHTML = "";
+        const sortedCategories = Object.keys(categoryTotals);
+
+        if (sortedCategories.length === 0) {
+          analyticsContainer.innerHTML = `<p style="color:#64748b; font-size:14px;">No expense records available for chosen period.</p>`;
+        } else {
+          sortedCategories.forEach(cat => {
+            const amt = categoryTotals[cat];
+            const percentage = totalFilteredExpense > 0 ? ((amt / totalFilteredExpense) * 100).toFixed(0) : 0;
+            
+            const itemDiv = document.createElement("div");
+            itemDiv.className = "analytics-item";
+            itemDiv.innerHTML = `
+              <div class="analytics-meta">
+                <span>${cat}</span>
+                <span>₹${amt} (${percentage}%)</span>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" style="width: ${percentage}%"></div>
+              </div>
+            `;
+            analyticsContainer.appendChild(itemDiv);
+          });
+        }
+
+        // Global Overview State updates
+        const balance = incomeSum - expenseSum;
+        document.getElementById("totalbal").innerHTML = `₹${balance}`;
+        document.getElementById("totalinc").innerHTML = `₹${incomeSum}`;
+        document.getElementById("totalexp").innerHTML = `₹${expenseSum}`;
+
+        const balElement = document.getElementById("totalbal");
+        if (balance < 0) balElement.style.color = "#dc3545";
+        else if (balance > 0) balElement.style.color = "#198754";
+        else balElement.style.color = "#0d6efd";
+
+        const reviewEl = document.getElementById("review");
+        if (expenseSum > incomeSum) {
+          reviewEl.innerHTML = "Overspending!";
+          reviewEl.style.color = "#dc3545";
+        } else if (expenseSum > incomeSum * 0.8) {
+          reviewEl.innerHTML = "High Alert!";
+          reviewEl.style.color = "#ffc107";
+        } else {
+          reviewEl.innerHTML = "Good Control";
+          reviewEl.style.color = "#198754";
+        }
+      }
+    </script>
+  </body>
+</html>
